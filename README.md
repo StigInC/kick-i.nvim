@@ -1,5 +1,5 @@
 # kick-i.nvim
-## This is a scrubby custom fork of kick-start. If you somehow wound up here looking for that, go to [https://github.com/neovim/](https://github.com/nvim-lua/kickstart.nvim)
+## This is a scrubby custom fork of kick-start. If you somehow wound up here looking for that, go to [https://github.com/nvim-lua/kickstart.nvim](https://github.com/nvim-lua/kickstart.nvim)
 
 Kickstart is
 A starting point for Neovim that is:
