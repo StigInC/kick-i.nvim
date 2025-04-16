@@ -15,13 +15,23 @@ vim.g.have_nerd_font = true
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
 
+vim.opt.shell = "pwsh.exe"
+vim.opt.shellcmdflag =  "-NoLogo -NonInteractive -ExecutionPolicy RemoteSigned -Command [Console]::InputEncoding=[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new();$PSDefaultParameterValues['Out-File:Encoding']='utf8';$PSStyle.OutputRendering='plaintext';Remove-Alias -Force -ErrorAction SilentlyContinue tee;"
+
+vim.opt.shellredir = '2>&1 | %%{ "$_" } | Out-File %s; exit $LastExitCode'
+
+vim.opt.shellpipe  = '2>&1 | %%{ "$_" } | tee %s; exit $LastExitCode'
+
+vim.opt.shellquote = ""
+
+vim.opt.shellxquote = ""
 -- Make line numbers default
 vim.opt.number = true
 
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
 vim.opt.relativenumber = true
-vim.keymap.set('n', '<leader>#', function toggle_relnums()
+vim.keymap.set('n', '<leader>#', function()
 vim.o.relativenumber = not vim.o.relativenumber
 end, {desc = 'Toggle relative numbers'})
 -- Enable mouse mode, can be useful for resizing splits for example!
@@ -40,7 +50,9 @@ end)
 
 -- Enable break indent
 vim.opt.breakindent = true
-
+vim.o.tabstop = 4
+vim.o.shiftwidth = 4
+vim.o.expandtab = false
 -- Save undo history
 vim.opt.undofile = true
 
@@ -52,7 +64,7 @@ vim.opt.smartcase = true
 vim.opt.signcolumn = 'yes'
 
 -- Decrease update time
-vim.opt.updatetime = 250
+vim.opt.updatetime = 70
 
 -- Decrease mapped sequence wait time
 vim.opt.timeoutlen = 300
@@ -88,6 +100,22 @@ vim.opt.confirm = true
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
+-- Navigation keymaps
+-- Better linewrap nav
+vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
+vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
+--vim.keymap.set
+
+-- Yank keymaps
+vim.keymap.set('n', 'yc', 'yygccp', {remap = true, desc = 'copydown+comment-out'})
+
+vim.keymap.set("n", "gp", "`[v`]", { desc = 'Select recent text' })
+
+-- Text-transform keymaps
+-- Move selected lines with shift+j or shift+k
+vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
+vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
+
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
@@ -107,12 +135,12 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 -- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 
 vim.keymap.set('n', 't', function()
-	local count = vim.v.count not 0 and vim.vcount or 1
+	local count = vim.v.count ~= 0 and vim.vcount or 1
 	return "g" .. string.rep("t", count)
 end, {noremap = true, expr = true, silent = true})
 
-vim keymap.set('n', 'T', function()
-	local count = vim.v.count not 0 and vim.vcount or 1
+vim.keymap.set('n', 'T', function()
+	local count = vim.v.count ~= 0 and vim.vcount or 1
 	return "g" .. string.rep("T", count)
 end, {noremap = true, expr = true, silent = true})
 
@@ -125,23 +153,23 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
-vim.keymap.set('n', 'M-Up', function()
-	local count = vim.v.count not 0 and vim.vcount or 1
+vim.keymap.set('n', '<M-Up>', function()
+	local count = vim.v.count ~= 0 and vim.vcount or 1
 	return "<C-w>" .. string.rep("+", count)
 end, {noremap = true, expr = true, silent = true})
 
-vim.keymap.set('n', 'M-Down', function()
-	local count = vim.v.count not 0 and vim.vcount or 1
+vim.keymap.set('n', '<M-Down>', function()
+	local count = vim.v.count ~= 0 and vim.vcount or 1
 	return "<C-w>" .. string.rep("-", count)
 end, {noremap = true, expr = true, silent = true})
 
-vim.keymap.set('n', 'M-Right', function()
-	local count = vim.v.count not 0 and vim.vcount or 1
+vim.keymap.set('n', '<M-Right>', function()
+	local count = vim.v.count ~= 0 and vim.vcount or 1
 	return "<C-w>" .. string.rep(">", count)
 end, { noremap = true, expr = true, silent = true})
 
-vim.keymap.set('n', 'M-Left', function()
-	local count = vim.v.count not 0 and vim.v.count or 1
+vim.keymap.set('n', '<M-Left>', function()
+	local count = vim.v.count ~= 0 and vim.v.count or 1
 	return "<C-w>" .. string.rep("<", count)
 end, { noremap = true, expr = true, silent = true})
 
@@ -150,6 +178,19 @@ end, { noremap = true, expr = true, silent = true})
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
 -- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
 -- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
+
+-- [[ Basic Directory Commands ]]
+		_G.currentdir = vim.fn.getcwd()
+
+		vim.api.nvim_create_user_command("Cwd", function()
+			print("cwd is ->", vim.fn.getcwd())
+		end, {})
+
+
+
+		vim.api.nvim_create_user_command("Currentdir", function()
+			return print ("cwd is -> ", _G.currentdir)
+		end, {})
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -405,6 +446,94 @@ require('lazy').setup({
     end,
   },
 
+
+  	-- Marlin, minimal harpoon-like buffer swapper
+  {
+    "desdic/marlin.nvim",
+	  opts = {},
+	  config = function(_, opts)
+		local marlin = require("marlin")
+		marlin.setup(opts)
+
+		local keymap = vim.keymap.set
+		keymap("n", "<Leader>fa", function() marlin.add() end, {  desc = "add file" })
+		keymap("n", "<Leader>fd", function() marlin.remove() end, {  desc = "remove file" })
+		keymap("n", "<Leader>fx", function() marlin.remove_all() end, {  desc = "remove all for current project" })
+		keymap("n", "<Leader>f]", function() marlin.move_up() end, {  desc = "move up" })
+		keymap("n", "<Leader>f[", function() marlin.move_down() end, {  desc = "move down" })
+		keymap("n", "<Leader>fs", function() marlin.sort() end, {  desc = "sort" })
+		keymap("n", "<Leader>fn", function() marlin.next() end, {  desc = "open next index" })
+		keymap("n", "<Leader>fp", function() marlin.prev() end, {  desc = "open previous index" })
+		keymap("n", "<Leader><Leader>", function() marlin.toggle() end, {  desc = "toggle cur/last open index" })
+
+		for index = 1,4 do
+			keymap("n", "<Leader>"..index, function() marlin.open(index) end, {  desc = "goto "..index })
+		end
+	end
+  },
+
+  {
+    "jake-stewart/multicursor.nvim",
+    branch = "1.0",
+    config = function()
+        local mc = require("multicursor-nvim")
+        mc.setup()
+
+        local set = vim.keymap.set
+
+        -- Add or skip cursor above/below the main cursor.
+        set({"n", "x"}, "<c-Up>", function() mc.lineAddCursor(-1) end, { desc = "mCursor -Add"})
+        set({"n", "x"}, "<c-Down>", function() mc.lineAddCursor(1) end, { desc = "mCursor +Add"})
+        set({"n", "x"}, "<leader><Up>", function() mc.lineSkipCursor(-1) end, { desc = "mCursor -Skip"})
+        set({"n", "x"}, "<leader><Down>", function() mc.lineSkipCursor(1) end, { desc = "mCursor +Skip"})
+
+        -- Add or skip adding a new cursor by matching word/selection
+        set({"n", "x"}, "<leader>n", function() mc.matchAddCursor(1) end, { desc = "mCursor +addMatch"})
+        set({"n", "x"}, "<leader>s", function() mc.matchSkipCursor(1) end, { desc = "mCursor +skipMatch"})
+        set({"n", "x"}, "<leader>N", function() mc.matchAddCursor(-1) end, { desc = "mCursor -addMatch"})
+        set({"n", "x"}, "<leader>S", function() mc.matchSkipCursor(-1) end, { desc = "mCursor -skipMatch"})
+
+        -- Add and remove cursors with control + left click.
+        set("n", "<c-leftmouse>", mc.handleMouse)
+        set("n", "<c-leftdrag>", mc.handleMouseDrag)
+        set("n", "<c-leftrelease>", mc.handleMouseRelease)
+
+        -- Disable and enable cursors.
+        set({"n", "x"}, "<c-q>", mc.toggleCursor, { desc = "Toggle Cursor"})
+
+        -- Mappings defined in a keymap layer only apply when there are
+        -- multiple cursors. This lets you have overlapping mappings.
+        mc.addKeymapLayer(function(layerSet)
+
+            -- Select a different cursor as the main one.
+            layerSet({"n", "x"}, "<left>", mc.prevCursor, { desc = "Prev cursor"})
+            layerSet({"n", "x"}, "<right>", mc.nextCursor, { desc = "Next cursor"})
+
+            -- Delete the main cursor.
+            layerSet({"n", "x"}, "<leader>x", mc.deleteCursor, { desc = "Del cursor"})
+
+            -- Enable and clear cursors using escape.
+            layerSet("n", "<esc>", function()
+                if not mc.cursorsEnabled() then
+                    mc.enableCursors()
+                else
+                    mc.clearCursors()
+                end
+            end)
+        end)
+
+        -- Customize how cursors look.
+        local hl = vim.api.nvim_set_hl
+        hl(0, "MultiCursorCursor", { reverse = true })
+        hl(0, "MultiCursorVisual", { link = "Visual" })
+        hl(0, "MultiCursorSign", { link = "SignColumn"})
+        hl(0, "MultiCursorMatchPreview", { link = "Search" })
+        hl(0, "MultiCursorDisabledCursor", { reverse = true })
+        hl(0, "MultiCursorDisabledVisual", { link = "Visual" })
+        hl(0, "MultiCursorDisabledSign", { link = "SignColumn"})
+    end
+  },
+
   -- LSP Plugins
   {
     -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
@@ -470,13 +599,16 @@ require('lazy').setup({
         callback = function(event)
           -- NOTE: Remember that Lua is a real programming language, and as such it is possible
           -- to define small helper and utility functions so you don't have to repeat yourself.
-          --
+
+          -- STG: storing cwd in a variable on attach
+
           -- In this case, we create a function that lets us more easily define mappings specific
           -- for LSP related items. It sets the mode, buffer and description for us each time.
           local map = function(keys, func, desc, mode)
             mode = mode or 'n'
             vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
           end
+		  
 
           -- Rename the variable under your cursor.
           --  Most Language Servers support renaming across files, etc.
@@ -566,7 +698,13 @@ require('lazy').setup({
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
             end, '[T]oggle Inlay [H]ints')
           end
-        end,
+
+          if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_hover, event.buf) then
+            map('<leader>w', function()
+              vim.diagnostic.open_float() {bufnr = event.buf }
+            end, 'Error [W]indow')
+        end
+      end,
       })
 
       -- Diagnostic Config
@@ -616,14 +754,18 @@ require('lazy').setup({
       local servers = {
         clangd = {
 		cmd = {
+		"clangd",
 		"--clang-tidy",
-		"--Wall",
-		"--Wno-missing-braces",
+		"--query-driver=g++",
 		"--log=verbose",
-		"--std=c++17",
+		"--background-index",
+		"--completion-style=detailed",
+		"--pch-storage=memory",
+		"--all-scopes-completion",
 		},
 		filetypes = {'c','cpp','h','hpp'},
-		},
+		capabilities = capabilities,
+	},
         -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
@@ -694,12 +836,12 @@ require('lazy').setup({
     cmd = { 'ConformInfo' },
     keys = {
       {
-        '<leader>f',
+        '<A-C>f',
         function()
           require('conform').format { async = true, lsp_format = 'fallback' }
         end,
         mode = '',
-        desc = '[F]ormat buffer',
+        desc = '[A]uto-[C]omplete [F]ormat',
       },
     },
     opts = {
@@ -890,15 +1032,16 @@ require('lazy').setup({
       --  Check out: https://github.com/echasnovski/mini.nvim
     end,
   },
+
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'cpp', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
       -- Autoinstall languages that are not installed
-      auto_install = true,
+     auto_install = true,
       highlight = {
         enable = true,
         -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
@@ -908,38 +1051,120 @@ require('lazy').setup({
       },
       indent = { enable = true, disable = { 'ruby' } },
     },
+
     -- There are additional nvim-treesitter modules that you can use to interact
     -- with nvim-treesitter. You should go explore a few and see what interests you:
     --
     --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
     --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
-  },
+	{
+    'nvim-treesitter/nvim-treesitter-textobjects',
+    --build = ':TSUpdate',
+    --main = 'nvim-treesitter.configs', 
+    dependencies = {'nvim-treesitter/nvim-treesitter'},
+    textobjects = {
+			enable = true,
 
-	-- Marlin, minimal harpoon-like buffer swapper
-{
-    "desdic/marlin.nvim",
-    opts = {},
-    config = function(_, opts)
-        local marlin = require("marlin")
-        marlin.setup(opts)
+    -- Define keymaps for selecting text objects
+		-- Example: Select inner function
+		["]f"] = "@function.inner",
+		["if"] = "@function.inner",
+		},
+		swap = {
+		enable = true,
+		-- Define keymaps for swapping text objects
+		-- Example: Swap current parameter with next
+		["]p"] = "@parameter.inner",
+		["ip"] = "@parameter.inner",
+		},
+		move = {
+		enable = true,
+		set_jumps = true,
+		goto_next_start = {
+			["]f"] = { query = "@call.outer", desc = "Next function call start" },
+			["]m"] = { query = "@function.outer", desc = "Next method/function def start" },
+			["]c"] = { query = "@class.outer", desc = "Next class start" },
+			["]i"] = { query = "@conditional.outer", desc = "Next conditional start" },
+			["]l"] = { query = "@loop.outer", desc = "Next loop start" },
+		},
+		goto_next_end = {
+			["]F"] = { query = "@call.outer", desc = "Next function call end" },
+			["]M"] = { query = "@function.outer", desc = "Next method/function def end" },
+			["]C"] = { query = "@class.outer", desc = "Next class end" },
+			["]I"] = { query = "@conditional.outer", desc = "Next conditional end" },
+			["]L"] = { query = "@loop.outer", desc = "Next loop end" },
+		},
+		goto_previous_start = {
+			["[f"] = { query = "@call.outer", desc = "Prev function call start" },
+			["[m"] = { query = "@function.outer", desc = "Prev method/function def start" },
+			["[c"] = { query = "@class.outer", desc = "Prev class start" },
+			["[i"] = { query = "@conditional.outer", desc = "Prev conditional start" },
+			["[l"] = { query = "@loop.outer", desc = "Prev loop start" },
+		},
+		goto_previous_end = {
+			["[F"] = { query = "@call.outer", desc = "Prev function call end" },
+			["[M"] = { query = "@function.outer", desc = "Prev method/function def end" },
+			["[C"] = { query = "@class.outer", desc = "Prev class end" },
+			["[I"] = { query = "@conditional.outer", desc = "Prev conditional end" },
+			["[L"] = { query = "@loop.outer", desc = "Prev loop end" },
+			},
+		},
 
-        local keymap = vim.keymap.set
-        keymap("n", "<Leader>fa", function() marlin.add() end, {  desc = "add file" })
-        keymap("n", "<Leader>fd", function() marlin.remove() end, {  desc = "remove file" })
-        keymap("n", "<Leader>fx", function() marlin.remove_all() end, {  desc = "remove all for current project" })
-        keymap("n", "<Leader>f]", function() marlin.move_up() end, {  desc = "move up" })
-        keymap("n", "<Leader>f[", function() marlin.move_down() end, {  desc = "move down" })
-        keymap("n", "<Leader>fs", function() marlin.sort() end, {  desc = "sort" })
-        keymap("n", "<Leader>fn", function() marlin.next() end, {  desc = "open next index" })
-        keymap("n", "<Leader>fp", function() marlin.prev() end, {  desc = "open previous index" })
-        keymap("n", "<Leader><Leader>", function() marlin.toggle() end, {  desc = "toggle cur/last open index" })
+	},
 
-        for index = 1,4 do
-            keymap("n", "<Leader>"..index, function() marlin.open(index) end, {  desc = "goto "..index })
-        end
-    end
-}
+	{
+		'RRethy/nvim-treesitter-textsubjects',
+    --build = ':TSUpdate',
+    --main = 'nvim-treesitter.configs',
+    dependencies = {'nvim-treesitter/nvim-treesitter'},
+		textsubjects = {
+			enable = true,
+			prev_selection = ',', -- (Optional) keymap to select the previous selection
+			keymaps = {
+				['.'] = 'textsubjects-smart',
+				[';'] = 'textsubjects-container-outer',
+				['i;'] = 'textsubjects-container-inner',
+				},
+			},
+
+	},
+
+	{
+		"Badhi/nvim-treesitter-cpp-tools",
+		dependencies = { "nvim-treesitter/nvim-treesitter" },
+		-- Optional: Configuration
+		opts = function()
+			local options = {
+				preview = {
+					quit = "q", -- optional keymapping for quit preview
+					accept = "<tab>", -- optional keymapping for accept preview
+				},
+				header_extension = "h", -- optional
+				source_extension = "cpp", -- optional
+				custom_define_class_function_commands = { -- optional
+					TSCppImplWrite = {
+						output_handle = require("nt-cpp-tools.output_handlers").get_add_to_cpp(),
+					},
+					--[[
+					<your impl function custom command name> = {
+						output_handle = function (str, context) 
+							-- string contains the class implementation
+							-- do whatever you want to do with it
+						end
+					}
+					]]
+				},
+			}
+			return options
+		end,
+		-- End configuration
+		config = true,
+	},
+
+},
+
+
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
@@ -948,13 +1173,13 @@ require('lazy').setup({
   --
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
-  --
-   require 'kickstart.plugins.debug',
-   require 'kickstart.plugins.indent_line',
-   require 'kickstart.plugins.lint',
-   require 'kickstart.plugins.autopairs',
-   require 'kickstart.plugins.neo-tree',
-   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+ 
+   {require 'kickstart.plugins.debug'},
+   {require 'kickstart.plugins.indent_line'},
+   {require 'kickstart.plugins.lint'},
+   {require 'kickstart.plugins.autopairs'},
+   {require 'kickstart.plugins.neo-tree'},
+	{require 'kickstart.plugins.gitsigns'}, -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
